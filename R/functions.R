@@ -62,6 +62,16 @@ get_paginated_data <- function(
   page_number = 1,
   page_size = 365
 ) {
+  multi <- vapply(
+    list(theme, sub_theme, topic, geography_type, geography, metric),
+    function(x) length(x) > 1 || (length(x) == 1 && grepl("[*?]", x)),
+    logical(1)
+  )
+  if (any(multi)) {
+    stop("Wildcards and multiple values are only supported in get_data(). ",
+         "get_paginated_data() needs a single value for each argument.")
+  }
+
   clean_argument <- function(x) if (is.null(x) || x == "") NULL else x
 
   list2env(
@@ -87,11 +97,7 @@ get_paginated_data <- function(
 
   get_and_validate <- function(url, value, label) {
     result <- tryCatch({
-      json_result <- httr2::request(url) |>
-        httr2::req_timeout(10) |>
-        httr2::req_perform() |>
-        httr2::resp_body_string() |>
-        jsonlite::fromJSON()
+      json_result <- .cached_options(url)
 
       options <- json_result[["name"]]
 
@@ -154,21 +160,7 @@ get_paginated_data <- function(
 
   # Gracefully handle paginated data fetch
   result <- tryCatch({
-    response <- httr2::request(url) |>
-      httr2::req_url_query(page_size = page_size, page = page_number) |>
-      httr2::req_timeout(10) |>
-      httr2::req_perform()
-
-    if (response$status_code >= 400) {
-      stop(sprintf(
-        "API request failed [%s]: %s",
-        response$status_code,
-        httr2::resp_status(response)
-      ))
-    }
-
-    httr2::resp_body_string(response) |>
-      jsonlite::fromJSON()
+    .api_json(url, query = list(page_size = page_size, page = page_number))
   }, error = function(e) {
     message("! Could not retrieve data from UKHSA API: ", conditionMessage(e))
   })
@@ -179,8 +171,25 @@ get_paginated_data <- function(
 
 #' Get Data
 #'
-#' Iteratively runs \code{\link{get_paginated_data}} to download all results and
-#' combine them into a `data.frame`.
+#' Downloads all pages of data for one or more metrics and combines them into
+#' a single table.
+#'
+#' Every query argument accepts:
+#' \itemize{
+#'   \item a single exact value, e.g. \code{"E-coli"};
+#'   \item a character vector of values, e.g. \code{c("England", "Wales")};
+#'   \item \code{"*"} to download every available value at that level;
+#'   \item a glob pattern using \code{*} or \code{?}, e.g. \code{"NHS*London*"}
+#'         or \code{"*PercentResistant*"}.
+#' }
+#' Wildcards can be used at any level, including \code{theme} and
+#' \code{sub_theme}. Every matching combination is downloaded and the results
+#' are stacked with \code{data.table::rbindlist()}. Each row keeps its own
+#' \code{theme}, \code{topic}, \code{geography}, \code{metric}, etc. columns,
+#' so the combined table is self-describing.
+#'
+#' Use \code{\link{get_combinations}} first to see how many datasets a
+#' wildcard query will download.
 #'
 #' For further information on the UKHSA dashboard API please visit
 #' the \href{https://ukhsa-dashboard.data.gov.uk/access-our-data}{API documentation}.
@@ -203,14 +212,40 @@ get_paginated_data <- function(
 #' @param metric          the type of data being selected.
 #'                        For example \code{COVID-19_testing_PCRcountByDay}.
 #'
-#' @return                data.frame containing the query results
+#' @param save_to         optional file path. If supplied, the combined result
+#'                        is also written to disk: \code{.rds} files with
+#'                        \code{saveRDS()}, anything else (e.g. \code{.csv},
+#'                        \code{.csv.gz}) with \code{data.table::fwrite()}.
 #'
-#' @details               If any input argument is left NULL or invalid, a list
-#'                        of possible values for that parameter is returned.
+#' @param as_data_table   if \code{TRUE}, return a \code{data.table};
+#'                        otherwise (the default) a \code{data.frame}.
+#'
+#' @param max_datasets    safety limit on the number of metric datasets a
+#'                        wildcard query may download. Raise it deliberately
+#'                        for very broad queries.
+#'
+#' @param verbose         show progress messages.
+#'
+#' @section Rate limiting:
+#' All requests are throttled to \code{getOption("ukhsadatR.requests_per_second", 1)}
+#' and retried with backoff on HTTP 429/503, so a wildcard query of N datasets
+#' takes at least N seconds by default. Lists of available options are
+#' cached for the session (see \code{\link{clear_cache}}). Please keep broad
+#' queries proportionate: preview them with \code{\link{get_combinations}}.
+#'
+#' @return                data.frame (or data.table) containing the query
+#'                        results.
+#'
+#' @details               If any argument is left \code{NULL} or is invalid,
+#'                        the possible values for that argument are shown as a
+#'                        message and \code{NULL} is returned invisibly.
+#'                        Datasets that fail to download are skipped with a
+#'                        message; the rest are still returned.
 #'
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' get_data(
 #'   theme = "infectious_disease",
 #'   sub_theme = "respiratory",
@@ -220,6 +255,18 @@ get_paginated_data <- function(
 #'   metric = "COVID-19_cases_casesByDay"
 #' ) |>
 #'   head()
+#'
+#' # all ICBs, all E. coli resistance metrics, saved as CSV
+#' ecoli <- get_data(
+#'   theme = "infectious_disease",
+#'   sub_theme = "antimicrobial_resistance",
+#'   topic = "E-coli",
+#'   geography_type = "Integrated Care Board",
+#'   geography = "*",
+#'   metric = "*PercentResistant*",
+#'   save_to = file.path(tempdir(), "ecoli_icb.csv")
+#' )
+#' }
 
 get_data <- function(
   theme = NULL,
@@ -227,41 +274,58 @@ get_data <- function(
   topic = NULL,
   geography_type = NULL,
   geography = NULL,
-  metric = NULL
+  metric = NULL,
+  save_to = NULL,
+  as_data_table = FALSE,
+  max_datasets = 500,
+  verbose = TRUE
 ) {
-  current_page <- 1
-  results <- list()
+  spec <- list(
+    theme = theme,
+    sub_theme = sub_theme,
+    topic = topic,
+    geography_type = geography_type,
+    geography = geography,
+    metric = metric
+  )
 
-  repeat {
-    paginated <- get_paginated_data(
-      theme = theme,
-      sub_theme = sub_theme,
-      topic = topic,
-      geography_type = geography_type,
-      geography = geography,
-      metric = metric,
-      page_number = current_page
-    )
+  combos <- .resolve_combinations(spec, verbose = verbose, max_datasets = max_datasets)
+  if (is.null(combos)) return(invisible(NULL))
 
-    if (inherits(paginated, "api_validation_error")) return(invisible(NULL))
-
-    if (is.null(paginated)) break
-
-    if (!is.list(paginated)) return(paginated)
-
-    if (length(paginated$results) == 0) break
-
-    results[[length(results) + 1]] <- paginated$results
-
-    if (is.null(paginated$`next`)) break
-
-    current_page <- current_page + 1
+  n <- nrow(combos)
+  if (verbose && n > 1) {
+    mins <- n / .rate_limit() / 60
+    message(sprintf(
+      "Downloading %s datasets (at least %s requests; ~%s min at %s request(s)/sec)...",
+      format(n, big.mark = ","), format(n, big.mark = ","),
+      format(ceiling(mins)), format(.rate_limit())
+    ))
   }
 
-  if (length(results) == 0) {
+  results <- vector("list", n)
+  failed <- 0L
+  for (i in seq_len(n)) {
+    if (verbose && n > 1) {
+      message(sprintf("[%d/%d] %s | %s | %s",
+                      i, n, combos$topic[i], combos$geography[i], combos$metric[i]))
+    }
+    results[[i]] <- .fetch_all_pages(combos$url[i])
+    if (is.null(results[[i]])) failed <- failed + 1L
+  }
+
+  if (failed > 0) {
+    message(sprintf("! %d of %d datasets could not be downloaded and were skipped.", failed, n))
+  }
+
+  out <- data.table::rbindlist(results, use.names = TRUE, fill = TRUE)
+
+  if (nrow(out) == 0) {
     warning("No results were returned by the API.")
     return(data.frame())
   }
 
-  do.call(rbind.data.frame, results)
+  if (!as_data_table) data.table::setDF(out)
+  if (!is.null(save_to)) .save_data(out, save_to, verbose = verbose)
+
+  out
 }

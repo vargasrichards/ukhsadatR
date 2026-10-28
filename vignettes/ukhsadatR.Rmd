@@ -35,3 +35,18 @@ get_data(
 ) |>
   head()
 ```
+
+
+## Wildcard example
+
+For exploratory data analysis, you may wish to download more than one single combination.
+
+It is good practice to preview the combinations first:
+```{r}
+get_combinations(
+ theme = "infectious_disease",
+   sub_theme = "antimicrobial_resistance",
+   topic = "E-coli", geography_type = "Nation", geography = "*", metric = "*"
+ )
+
+```

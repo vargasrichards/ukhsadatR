@@ -10,7 +10,11 @@ get_data(
   topic = NULL,
   geography_type = NULL,
   geography = NULL,
-  metric = NULL
+  metric = NULL,
+  save_to = NULL,
+  as_data_table = FALSE,
+  max_datasets = 500,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -31,24 +35,69 @@ For example \code{England}.}
 
 \item{metric}{the type of data being selected.
 For example \code{COVID-19_testing_PCRcountByDay}.}
+
+\item{save_to}{optional file path. If supplied, the combined result
+is also written to disk: \code{.rds} files with
+\code{saveRDS()}, anything else (e.g. \code{.csv},
+\code{.csv.gz}) with \code{data.table::fwrite()}.}
+
+\item{as_data_table}{if \code{TRUE}, return a \code{data.table};
+otherwise (the default) a \code{data.frame}.}
+
+\item{max_datasets}{safety limit on the number of metric datasets a
+wildcard query may download. Raise it deliberately
+for very broad queries.}
+
+\item{verbose}{show progress messages.}
 }
 \value{
-\if{html}{\out{<div class="sourceCode">}}\preformatted{           data.frame containing the query results
+\if{html}{\out{<div class="sourceCode">}}\preformatted{           data.frame (or data.table) containing the query
+                   results.
 }\if{html}{\out{</div>}}
 }
 \description{
-Iteratively runs \code{\link{get_paginated_data}} to download all results and
-combine them into a \code{data.frame}.
+Downloads all pages of data for one or more metrics and combines them into
+a single table.
 }
 \details{
+Every query argument accepts:
+\itemize{
+\item a single exact value, e.g. \code{"E-coli"};
+\item a character vector of values, e.g. \code{c("England", "Wales")};
+\item \code{"*"} to download every available value at that level;
+\item a glob pattern using \code{*} or \code{?}, e.g. \code{"NHS*London*"}
+or \code{"*PercentResistant*"}.
+}
+Wildcards can be used at any level, including \code{theme} and
+\code{sub_theme}. Every matching combination is downloaded and the results
+are stacked with \code{data.table::rbindlist()}. Each row keeps its own
+\code{theme}, \code{topic}, \code{geography}, \code{metric}, etc. columns,
+so the combined table is self-describing.
+
+Use \code{\link{get_combinations}} first to see how many datasets a
+wildcard query will download.
+
 For further information on the UKHSA dashboard API please visit
 the \href{https://ukhsa-dashboard.data.gov.uk/access-our-data}{API documentation}.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{          If any input argument is left NULL or invalid, a list
-                   of possible values for that parameter is returned.
+\if{html}{\out{<div class="sourceCode">}}\preformatted{          If any argument is left \code{NULL} or is invalid,
+                   the possible values for that argument are shown as a
+                   message and \code{NULL} is returned invisibly.
+                   Datasets that fail to download are skipped with a
+                   message; the rest are still returned.
 }\if{html}{\out{</div>}}
 }
+\section{Rate limiting}{
+
+All requests are throttled to \code{getOption("ukhsadatR.requests_per_second", 1)}
+and retried with backoff on HTTP 429/503, so a wildcard query of N datasets
+takes at least N seconds by default. Lists of available options are
+cached for the session (see \code{\link{clear_cache}}). Please keep broad
+queries proportionate: preview them with \code{\link{get_combinations}}.
+}
+
 \examples{
+\donttest{
 get_data(
   theme = "infectious_disease",
   sub_theme = "respiratory",
@@ -58,4 +107,16 @@ get_data(
   metric = "COVID-19_cases_casesByDay"
 ) |>
   head()
+
+# all ICBs, all E. coli resistance metrics, saved as CSV
+ecoli <- get_data(
+  theme = "infectious_disease",
+  sub_theme = "antimicrobial_resistance",
+  topic = "E-coli",
+  geography_type = "Integrated Care Board",
+  geography = "*",
+  metric = "*PercentResistant*",
+  save_to = file.path(tempdir(), "ecoli_icb.csv")
+)
+}
 }

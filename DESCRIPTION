@@ -1,25 +1,28 @@
 Package: ukhsadatR
 Title: R Interface to Access UKHSA Dashboard Data
-Version: 0.1.1
+Version: 0.2.0
 Authors@R: c(
     person("Ollie", "Lloyd", email = "o.lloyd@doctors.org.uk", role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0002-9385-1634")),
-    person("Pouria", "Hadjibagheri", role = "ctb", comment = "Author of the original 'ukcovid19' package."))
+    person("Pouria", "Hadjibagheri", role = "ctb", comment = "Author of the original 'ukcovid19' package."),
+    person("Alexis", "Vargas Richards", role = "ctb"))
 Description: Programmatic interface to access data from the UK Health Security Agency (UKHSA) Data Dashboard API. The package was originally based on the 'ukcovid19' package by Pouria Hadjibagheri and has been substantially rewritten and extended. For more information on the API, see <https://ukhsa-dashboard.data.gov.uk/access-our-data>.
-URL: https://github.com/silverfoxdoc/ukhsadatR, https://silverfoxdoc.github.io/ukhsadatR/
-BugReports: https://github.com/silverfoxdoc/ukhsadatR/issues
+URL: https://github.com/vargasrichards/ukhsadatR
+BugReports: https://github.com/vargasrichards/ukhsadatR/issues
 License: MIT + file LICENSE
 Copyright: Ollie Lloyd
 Depends: 
   R (>= 4.3)
 Imports:
+  data.table,
   httr2,
   jsonlite,
   utils
 Suggests:
   testthat,
+  withr,
   knitr,
   rmarkdown
 VignetteBuilder: knitr
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+Config/roxygen2/version: 8.1.0
