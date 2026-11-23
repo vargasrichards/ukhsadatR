@@ -51,7 +51,7 @@ test_that("save_to writes csv, csv.gz and rds files that round-trip", {
   expect_equal(nrow(data.table::fread(file.path(dir, "nested", "a.csv"))), 3)
 
   do.call(get_data, c(args, save_to = file.path(dir, "b.csv.gz")))
-  expect_equal(nrow(data.table::fread(file.path(dir, "b.csv.gz"))), 3)
+  expect_equal(nrow(utils::read.csv(gzfile(file.path(dir, "b.csv.gz")))), 3)
 
   do.call(get_data, c(args, save_to = file.path(dir, "c.rds")))
   expect_equal(readRDS(file.path(dir, "c.rds")), df)
@@ -75,11 +75,14 @@ test_that("verbose = FALSE is silent, verbose = TRUE reports saving", {
 test_that("datasets that fail to download are skipped, the rest returned", {
   local_fake_api(n_rows = 2, fail = "COVID-19_deaths_ONSByDay")
   expect_message(
-    df <- get_data(
-      theme = "infectious_disease", sub_theme = "respiratory", topic = "COVID-19",
-      geography_type = "Nation", geography = "England", metric = "*", verbose = FALSE
+    expect_message(
+      df <- get_data(
+        theme = "infectious_disease", sub_theme = "respiratory", topic = "COVID-19",
+        geography_type = "Nation", geography = "England", metric = "*", verbose = FALSE
+      ),
+      "1 of 2 datasets could not be downloaded"
     ),
-    "1 of 2 datasets could not be downloaded"
+    "Could not retrieve data from UKHSA API"
   )
   expect_equal(unique(df$metric), "COVID-19_cases_casesByDay")
 })

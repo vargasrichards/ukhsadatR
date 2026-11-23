@@ -3,3 +3,18 @@ template:
   bootstrap: 5
   bootswatch: sandstone
 
+reference:
+  - title: UKHSA Data Dashboard API
+    contents:
+      - get_data
+      - get_subtheme_data
+      - get_combinations
+      - get_paginated_data
+      - clear_cache
+  - title: Fingertips AMR local indicators
+    contents:
+      - download_fingertips_amr
+      - fingertips_amr_indicators
+      - summarise_fingertips_coverage
+      - classify_fingertips_indicators
+      - parse_fingertips_period

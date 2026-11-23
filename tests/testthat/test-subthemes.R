@@ -11,6 +11,13 @@ test_that(".geography_types_for supports NULL, a scalar and a named override", {
                c(respiratory = "Nation", contact = "Nation"))
   expect_equal(.geography_types_for(st, c(respiratory = "Nation")),
                c(respiratory = "Nation", contact = "Nation"))
+  # a named override changes only the named sub-theme
+  expect_equal(.geography_types_for(st, c(contact = "UKHSA Region")),
+               c(respiratory = "UKHSA Region", contact = "UKHSA Region"))
+  expect_equal(.geography_types_for(c("respiratory", "contact", "vector_borne"), c(respiratory = "Nation")),
+               c(respiratory = "Nation", contact = "Nation", vector_borne = "Nation"))
+  expect_equal(.geography_types_for(c("respiratory", "gastrointestinal"), c(respiratory = "Nation")),
+               c(respiratory = "Nation", gastrointestinal = "UKHSA Region"))
   expect_error(.geography_types_for(st, c("a", "b")), "named vector")
   expect_error(.geography_types_for(st, c(nope = "Nation")), "not in 'sub_themes'")
 })
@@ -51,8 +58,10 @@ test_that("get_subtheme_data writes one file per sub-theme", {
 
 test_that("wildcard sub_themes are expanded against the API", {
   local_fake_api(n_rows = 1)
-  res <- get_subtheme_data(sub_themes = "*", topic = "*", verbose = FALSE,
-                           geography_type = "Nation", max_datasets = 100)
+  res <- suppressMessages(
+    get_subtheme_data(sub_themes = "*", topic = "*", verbose = FALSE,
+                      geography_type = "Nation", max_datasets = 100)
+  )
   # sub-themes with no Nation data (antimicrobial_resistance) come back NULL
   expect_true(all(c("respiratory", "contact", "vector_borne") %in% names(res)))
   expect_false(is.null(res$contact))
@@ -61,8 +70,11 @@ test_that("wildcard sub_themes are expanded against the API", {
 test_that("sub-themes that cannot be retrieved are skipped with a message", {
   local_fake_api(n_rows = 2)
   expect_message(
-    res <- get_subtheme_data(sub_themes = c("contact", "not_a_subtheme"), verbose = FALSE),
-    "Skipping sub-theme 'not_a_subtheme'"
+    expect_message(
+      res <- get_subtheme_data(sub_themes = c("contact", "not_a_subtheme"), verbose = FALSE),
+      "Skipping sub-theme 'not_a_subtheme'"
+    ),
+    "Invalid Sub-theme"
   )
   expect_null(res$not_a_subtheme)
   expect_false(is.null(res$contact))

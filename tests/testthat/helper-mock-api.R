@@ -71,22 +71,22 @@ fake_api_json <- function(url, query = list(), timeout = 30) {
   rest <- sub(paste0("^", base, "/?"), "", url)
   parts <- if (nzchar(rest)) utils::URLdecode(strsplit(rest, "/")[[1]]) else character()
   k <- length(parts)
-  if (k %% 2 == 1) stop("HTTP 404 Not Found: ", url)
 
   # Walk the name segments (odd positions); even positions are level keywords.
+  # A metric endpoint has 11 segments, a catalogue endpoint an even number.
+  if (k %% 2 == 1 && k != 11) stop("HTTP 404 Not Found: ", url)
   node <- fake_catalogue
-  name_pos <- seq(1, min(k, 9), by = 2)
-  if (k >= 1) {
-    for (j in name_pos) {
-      if (!is.list(node) || !(parts[j] %in% names(node))) stop("HTTP 404 Not Found: ", url)
-      node <- node[[parts[j]]]
-    }
+  for (j in seq_len(min(k, 10))[seq_len(min(k, 10)) %% 2 == 1]) {
+    if (!is.list(node) || !(parts[j] %in% names(node))) stop("HTTP 404 Not Found: ", url)
+    node <- node[[parts[j]]]
   }
 
-  if (k == 11) { # a metric endpoint: return a paginated results payload
-    stop("unreachable") # k is always even here; see below
+  if (k == 11) { # metric endpoint: a paginated results payload
+    if (!(parts[11] %in% node)) stop("HTTP 404 Not Found: ", url)
+    return(fake_results(parts, query))
   }
 
+  # catalogue endpoint: the options at this level, each with a link to itself
   opts <- if (is.list(node)) names(node) else node
   link_base <- paste(c(base, vapply(parts, utils::URLencode, character(1))), collapse = "/")
   data.frame(

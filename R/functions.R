@@ -309,8 +309,12 @@ get_data <- function(
       message(sprintf("[%d/%d] %s | %s | %s",
                       i, n, combos$topic[i], combos$geography[i], combos$metric[i]))
     }
-    results[[i]] <- .fetch_all_pages(combos$url[i])
-    if (is.null(results[[i]])) failed <- failed + 1L
+    page_data <- .fetch_all_pages(combos$url[i])
+    if (is.null(page_data)) {
+      failed <- failed + 1L
+    } else {
+      results[[i]] <- page_data
+    }
   }
 
   if (failed > 0) {

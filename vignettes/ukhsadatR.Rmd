@@ -50,3 +50,30 @@ get_combinations(
  )
 
 ```
+
+
+## Whole sub-themes
+
+`get_subtheme_data()` downloads every sub-theme of a theme in one call and can save one file per sub-theme. This is a large download, so it is not run here:
+
+```{r, eval = FALSE}
+get_subtheme_data(
+  sub_themes = c("respiratory", "gastrointestinal"),
+  out_dir = "ukhsa_data"
+)
+```
+
+
+## Fingertips AMR local indicators
+
+The package also wraps the UKHSA Fingertips "AMR local indicators" profile through the suggested `fingertipsR` package (`pak::pak("ropensci/fingertipsR")`). Preview the indicators, then download them:
+
+```{r, eval = FALSE}
+fingertips_amr_indicators(themes = "resistance", rolling = "exclude")
+
+res <- download_fingertips_amr(themes = "resistance", rolling = "exclude")
+summarise_fingertips_coverage(res)
+```
+
+Pass `out_dir` to cache every indicator on disk so an interrupted download can be resumed by running the same call again.
+

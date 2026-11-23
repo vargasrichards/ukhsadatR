@@ -28,8 +28,10 @@
   names(out) <- sub_themes
   if (is.null(geography_type)) return(out)
 
+  geo_names <- names(geography_type)
   geography_type <- as.character(geography_type)
-  if (is.null(names(geography_type))) {
+  names(geography_type) <- geo_names
+  if (is.null(geo_names)) {
     if (length(geography_type) != 1) {
       stop("'geography_type' must be NULL, a single value, or a named vector ",
            "with one element per sub-theme.", call. = FALSE)

@@ -148,7 +148,7 @@ test_that("an unreachable API gives a message, not an error", {
   local_fake_api(fail = "themes")
   expect_message(
     result <- get_paginated_data(theme = "infectious_disease"),
-    "Unable to retrieve valid Theme options|Could not retrieve"
+    "HTTP 500"
   )
   expect_true(inherits(result, "api_validation_error"))
 })

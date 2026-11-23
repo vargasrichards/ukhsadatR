@@ -313,7 +313,7 @@ parse_fingertips_period <- function(label) {
 #' \code{\link{download_fingertips_amr}} would fetch.
 #'
 #' Requires the \pkg{fingertipsR} package, which is not currently on CRAN:
-#' \code{remotes::install_github("ropensci/fingertipsR")}.
+#' \code{pak::pak("ropensci/fingertipsR")}.
 #'
 #' @param themes character vector of themes to keep: any of
 #'   \code{"prescribing"}, \code{"resistance"}, \code{"testing"},

@@ -86,7 +86,8 @@ test_that("missing and invalid arguments return NULL with the available options"
   )
   expect_null(res)
   expect_message(
-    res <- get_combinations(theme = "infectious_disease", sub_theme = "respiratory", topic = ""),
+    res <- get_data(theme = "infectious_disease", sub_theme = "respiratory", topic = NULL,
+                    verbose = FALSE),
     "No 'Topic' entered"
   )
   expect_null(res)
@@ -108,8 +109,11 @@ test_that("catalogue lookups are cached for the session and clear_cache resets t
 test_that("catalogue failures are reported rather than thrown", {
   local_fake_api(fail = "themes")
   expect_message(
-    res <- get_combinations(theme = "*", verbose = FALSE),
-    "Could not retrieve Theme options"
+    expect_message(
+      res <- get_combinations(theme = "*", verbose = FALSE),
+      "Could not retrieve Theme options"
+    ),
+    "Unable to retrieve valid Theme options"
   )
   expect_null(res)
 })

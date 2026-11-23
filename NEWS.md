@@ -1,3 +1,13 @@
+# ukhsadatR 0.3.0
+
+* The retrieval scripts in `scripts/` are now documented, exported functions with ordinary arguments instead of command-line flags, so they can be used from any project after installing the package.
+* New `get_subtheme_data()` (from `scripts/retrieve_all.R`) downloads every sub-theme of a theme (default: the ten `infectious_disease` sub-themes), optionally saving one file per sub-theme.
+* New `download_fingertips_amr()` (from `scripts/fingertips_amr_download.R`) downloads the Fingertips "AMR local indicators" profile for all area types, with per-indicator caching and resumption when `out_dir` is given. Command-line options map to arguments: `--themes` to `themes`, `--rolling` to `rolling`, `--out` to `out_dir` and `--refresh` to `refresh`. Unlike the script it keeps everything in memory when `out_dir` is `NULL` and no longer needs `dplyr` or `readr`.
+* New helpers `fingertips_amr_indicators()`, `classify_fingertips_indicators()`, `parse_fingertips_period()` and `summarise_fingertips_coverage()`.
+* `fingertipsR` (not on CRAN) is a suggested package, installed with `pak::pak("ropensci/fingertipsR")`.
+* Fixed `get_data()` failing with "subscript out of bounds" when one of several datasets could not be downloaded; the failed dataset is now skipped as documented.
+* Offline test suite: the API is mocked, so tests no longer need network access. The live tests are opt-in (`UKHSADATR_LIVE_TESTS=true`).
+
 # ukhsadatR 0.2.0
 
 * `get_data()` now supports wildcards: any argument can be `"*"` (all values), a glob pattern such as `"NHS*London*"`, or a character vector of values. All matching datasets are downloaded and combined with `data.table::rbindlist()`.
