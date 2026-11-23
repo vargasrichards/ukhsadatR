@@ -1,6 +1,6 @@
 # ukhsadatR 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/silverfoxdoc/ukhsadatR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/silverfoxdoc/ukhsadatR/actions)
+[![R-CMD-check](https://github.com/vargasrichards/ukhsadatR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/vargasrichards/ukhsadatR/actions)
 
 <!-- badges: end -->
 
@@ -9,7 +9,6 @@ This is a wrapper for the [UKHSA Data Dashboard](https://ukhsa-dashboard.data.go
 Further detailed documentation on the UKHSA data dashboard API is available [here](https://ukhsa-dashboard.data.gov.uk/access-our-data).
 
 This package is based upon the [`ukcovid19`](https://github.com/UKHSA-Internal/coronavirus-dashboard-api-R-sdk) package previously published by Public Health England but has been substantially rewritten and extended.
-
 
 NB: This fork is specially adapted for AMR data:  the scripts directory houses `fingertips_amr_download.R` which uses the fingertipsR package to retrieve AMR and AMU (usage) data from Fingertips. 
 

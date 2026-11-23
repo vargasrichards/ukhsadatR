@@ -9,3 +9,8 @@
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^data$
+^data-raw$
+^scripts$
+^\.Rhistory$
+^README\.Rmd$
