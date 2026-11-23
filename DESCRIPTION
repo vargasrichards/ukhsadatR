@@ -1,6 +1,6 @@
 Package: ukhsadatR
 Title: R Interface to Access UKHSA Dashboard Data
-Version: 0.3.0
+Version: 1.0.0
 Authors@R: c(
     person("Ollie", "Lloyd", email = "o.lloyd@doctors.org.uk", role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0002-9385-1634")),
     person("Pouria", "Hadjibagheri", role = "ctb", comment = "Author of the original 'ukcovid19' package."),

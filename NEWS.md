@@ -1,3 +1,5 @@
+# ukhsadatR 1.0.0
+
 # ukhsadatR 0.3.0
 
 * The retrieval scripts in `scripts/` are now documented, exported functions with ordinary arguments instead of command-line flags, so they can be used from any project after installing the package.
