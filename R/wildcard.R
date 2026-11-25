@@ -42,7 +42,7 @@
   req <- httr2::request(url)
   if (length(query) > 0) req <- do.call(httr2::req_url_query, c(list(req), query))
   req |>
-    httr2::req_user_agent("ukhsadatR (https://github.com/silverfoxdoc/ukhsadatR)") |>
+    httr2::req_user_agent("ukhsadatR (https://github.com/vargasrichards/ukamrdataR)") |>
     httr2::req_throttle(rate = .rate_limit(), realm = "ukhsadatR") |>
     httr2::req_retry(
       max_tries = 5,

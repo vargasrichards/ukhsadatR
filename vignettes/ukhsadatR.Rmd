@@ -1,5 +1,5 @@
 ---
-title: "Intoduction to ukhsadatR"
+title: "Introduction to ukhsadatR"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{ukhsadatR}
@@ -8,15 +8,25 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
+# The examples below call the live UKHSA API. They are only evaluated when
+# UKHSADATR_VIGNETTE_ONLINE=true (set by the pkgdown workflow), so that
+# R CMD check and CI never depend on the network or on the upstream service.
+online <- identical(Sys.getenv("UKHSADATR_VIGNETTE_ONLINE"), "true")
+
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  eval = online
 )
 ```
 
 ## Introduction
 
 The `ukhsadatR` package provides easy access to UK Health Security Agency (UKHSA) data via their API.
+
+```{r, echo = FALSE, eval = TRUE, results = "asis"}
+if (!online) cat("*The examples in this vignette call live APIs and are not evaluated in this build; the code is shown without output.*\n")
+```
 
 ## Example
 

@@ -1,13 +1,20 @@
-# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
-# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+# Runs R CMD check (and with it the offline testthat suite) on every push to
+# main/master and on every pull request, across OSes and R versions.
+# Derived from https://github.com/r-lib/actions/tree/v2/examples
 on:
   push:
     branches: [main, master]
   pull_request:
+  workflow_dispatch:
 
 name: R-CMD-check.yaml
 
 permissions: read-all
+
+# Cancel superseded runs of the same branch / PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   R-CMD-check:
@@ -21,13 +28,16 @@ jobs:
         config:
           - {os: macos-latest,   r: 'release'}
           - {os: windows-latest, r: 'release'}
-          - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
-          - {os: ubuntu-latest,   r: 'release'}
-          - {os: ubuntu-latest,   r: 'oldrel-1'}
+          - {os: ubuntu-latest,  r: 'devel', http-user-agent: 'release'}
+          - {os: ubuntu-latest,  r: 'release'}
+          - {os: ubuntu-latest,  r: 'oldrel-1'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      # Tests are offline (mocked API). The live-API tests stay off in CI so a
+      # UKHSA / OpenPrescribing outage cannot fail a pull request.
+      UKHSADATR_LIVE_TESTS: "false"
 
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +50,8 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
+      # Installs Imports + Suggests, including fingertipsR from GitHub via the
+      # 'Remotes' field in DESCRIPTION.
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck

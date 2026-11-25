@@ -1,8 +1,12 @@
 # ukamrdataR 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/vargasrichards/ukhsadatR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/vargasrichards/ukhsadatR/actions)
+[![R-CMD-check](https://github.com/vargasrichards/ukamrdataR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/vargasrichards/ukamrdataR/actions/workflows/R-CMD-check.yaml)
+[![test-coverage](https://github.com/vargasrichards/ukamrdataR/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/vargasrichards/ukamrdataR/actions/workflows/test-coverage.yaml)
+[![pkgdown](https://github.com/vargasrichards/ukamrdataR/actions/workflows/pkgdown.yaml/badge.svg)](https://vargasrichards.github.io/ukamrdataR/)
 
 <!-- badges: end -->
+
+Documentation: <https://vargasrichards.github.io/ukamrdataR/>. The R package is named `ukhsadatR`: use `library(ukhsadatR)` after installing.
 
 This is a wrapper for the [UKHSA Data Dashboard](https://ukhsa-dashboard.data.gov.uk/) API, so that data can be easily imported into `R`.
 
@@ -16,8 +20,8 @@ NB: This fork is specially adapted for AMR data. As well as the Data Dashboard A
 
 ``` r
 # install.packages("pak")
-pak::pak("vargasrichards/ukhsadatR")
-# or: remotes::install_github("vargasrichards/ukhsadatR")
+pak::pak("vargasrichards/ukamrdataR")
+# or: remotes::install_github("vargasrichards/ukamrdataR")
 ```
 
 The Fingertips functions additionally need [`fingertipsR`](https://github.com/ropensci/fingertipsR), which is not currently on CRAN:
@@ -91,6 +95,32 @@ fingertips_amr_indicators(themes = c("prescribing", "resistance"))
 ```
 
 Themes are `prescribing`, `resistance`, `testing`, `cases`, `stewardship`, `ipc` and `other`; `rolling` is `"include"`, `"exclude"` or `"only"`. Rolling series cannot be un-rolled without starting values, and "rolling quarterly average" series report the 4-quarter *average* count (rounded), so use `rolling = "exclude"` when you need discrete counts.
+
+## OpenPrescribing (English GP prescribing)
+
+The [OpenPrescribing API](https://openprescribing.net/api/) (Bennett Institute, University of Oxford; keyless) serves monthly **items, quantity and actual cost** for any BNF code from the NHS Business Services Authority prescribing dataset, for the last five years. `get_op_spending()` retrieves it at the spatial resolution you choose: `"england"`, `"region"`, `"icb"`, `"sicbl"` (Sub-ICB Location), `"pcn"` or `"practice"`.
+
+``` r
+# Antibacterials (BNF 5.1), England, monthly
+get_op_spending("0501")
+
+# Named classes by ICB for 2024, with items per 1,000 registered patients
+get_op_spending(
+  c(Penicillins = "050101", Macrolides = "050105"),
+  resolution = "icb", start = "2024-01", end = "2024-12",
+  add_list_size = TRUE
+)
+
+# Every BNF 5.1 sub-class (13 requests) at region level
+get_op_antibiotics(resolution = "region", start = "2023-01")
+
+# Find BNF and organisation codes, and get boundaries for mapping
+search_op_bnf("amoxicillin")
+search_op_org("london", resolution = "icb")
+icb <- get_op_boundaries("icb")          # sf object (needs the 'sf' package)
+```
+
+`code` is matched as a BNF prefix (`"0501"` = all antibacterials; section numbers such as `"5.1.1"` also work). Several codes are fetched separately and returned in long format with a `code_label` column unless `combine = TRUE`. `get_op_org_details()` returns the list-size denominators directly. Organisations are those OpenPrescribing currently defines, so a series does not follow past ICB / Sub-ICB mergers; check that `org_id` matches your boundary vintage. All requests share the package's rate limit (see above).
 
 ## Example
 

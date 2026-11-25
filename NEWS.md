@@ -1,3 +1,11 @@
+# ukhsadatR (development version)
+
+* New OpenPrescribing support (<https://openprescribing.net/api/>, English GP prescribing, last five years):
+  * `get_op_spending()` returns monthly items, quantity and actual cost for any BNF code(s) at England, region, ICB, Sub-ICB Location, PCN or practice resolution, with `date` / `start` / `end` filtering, long-format output for several named codes, `combine`, and `add_list_size` for items per 1,000 patients.
+  * `get_op_antibiotics()` and `op_antibiotic_classes()` fetch the BNF 5.1 antibacterial sub-classes.
+  * `get_op_org_details()` returns list sizes, ASTRO-PU and STAR-PU; `search_op_bnf()` and `search_op_org()` look up codes; `get_op_boundaries()` returns organisation boundaries as `sf` (`sf` is a suggested package).
+  * Requests use the existing rate limit and retry settings. Offline tests mock the API; opt-in live tests are in `test-live.R`.
+
 # ukhsadatR 1.0.0
 
 # ukhsadatR 0.3.0

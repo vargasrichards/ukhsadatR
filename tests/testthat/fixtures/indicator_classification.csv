@@ -1,0 +1,16 @@
+"IndicatorName","is_rolling","period_type","theme","organism","specimen","onset"
+"Percentage of broad-spectrum prescribed antibiotic items (cephalosporin, quinolone and co-amoxiclav class) by quarter",FALSE,"quarter","prescribing",,,
+"MRSA bacteraemia case counts and rates by sub ICB location (SICBL) and financial year",FALSE,"financial year","cases","MRSA","blood",
+"MSSA bacteraemia case counts and rates of hospital-onset, by reporting acute trust and financial year",FALSE,"financial year","cases","MSSA","blood","hospital-onset"
+"Percentage of E. coli blood specimens with susceptibility tests to a carbapenem; by ICB sub-location and quarter",FALSE,"quarter","testing","E. coli","blood",
+"C. difficile infection 12-month rolling counts and rates, by Sub ICB Location (SICBL)
+ and month",TRUE,"12-month rolling, monthly steps","cases","C. difficile",,
+"Proportion of single rooms available within NHS Acute Trusts by financial year",FALSE,"financial year","other",,,
+"Twelve-month rolling total number of prescribed antibiotic items per 1000 resident individuals per day",TRUE,"12-month rolling, monthly steps","prescribing",,,
+"Percentage of community E. coli urine specimens with susceptibility tests to trimethoprim; by ICB sub-location and quarter",FALSE,"quarter","testing","E. coli","urine",
+"E. coli bacteraemia case counts and rates of hospital-onset, by reporting acute trust and financial year",FALSE,"financial year","cases","E. coli","blood","hospital-onset"
+"Antibiotic Guardians per 100,000 population per quarter by ICB sub-level",FALSE,"quarter","stewardship",,,
+"MRSA bacteraemia 12-month rolling case counts and rates of hospital-onset, by Sub ICB Location (SICBL) and month",TRUE,"12-month rolling, monthly steps","cases","MRSA","blood","hospital-onset"
+"P. aeruginosa bacteraemia case counts and rates of community-onset, by sub ICB location (SICBL) and financial year",FALSE,"financial year","cases","P. aeruginosa","blood","community-onset"
+"Klebsiella spp. bacteraemia case counts and rates, by sub ICB location (SICBL) and financial year",FALSE,"financial year","cases","Klebsiella spp.","blood",
+"C. difficile infection 12-month rolling counts and rates of community onset-healthcare associated, by reporting acute trust and month",TRUE,"12-month rolling, monthly steps","cases","C. difficile",,"community-onset"

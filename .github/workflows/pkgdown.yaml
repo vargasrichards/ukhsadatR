@@ -1,5 +1,9 @@
-# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
-# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+# Builds the pkgdown documentation site on every push / pull request, and
+# deploys it to GitHub Pages (the gh-pages branch) from main/master and on
+# release. One-off setup: Settings > Pages > Source = "Deploy from a branch",
+# branch gh-pages, folder / (root). The site is then served at
+# https://vargasrichards.github.io/ukamrdataR/
+# Derived from https://github.com/r-lib/actions/tree/v2/examples
 on:
   push:
     branches: [main, master]
@@ -20,6 +24,9 @@ jobs:
       group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      # Let the vignette run its API examples so the site shows real output.
+      # They fail gracefully (messages, not errors) if an API is down.
+      UKHSADATR_VIGNETTE_ONLINE: "true"
     permissions:
       contents: write
     steps:
@@ -36,11 +43,16 @@ jobs:
           extra-packages: any::pkgdown, local::.
           needs: website
 
+      # Fails early if an exported topic is missing from the reference index.
+      - name: Check pkgdown configuration
+        run: pkgdown::check_pkgdown()
+        shell: Rscript {0}
+
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
-      - name: Deploy to GitHub pages 🚀
+      - name: Deploy to GitHub pages
         if: github.event_name != 'pull_request'
         uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
