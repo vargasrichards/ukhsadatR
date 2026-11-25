@@ -1,0 +1,9 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  ukhsadatR: ukhsadatR.html
+last_built: 2026-11-25T14:35Z
+urls:
+  reference: https://vargasrichards.github.io/ukamrdataR/reference
+  article: https://vargasrichards.github.io/ukamrdataR/articles
